@@ -168,7 +168,7 @@ symlinkBinaries comp configFlags installFlags plan =
     prefixTemplate   = fromFlagTemplate (configProgPrefix configFlags)
     suffixTemplate   = fromFlagTemplate (configProgSuffix configFlags)
     platform         = InstallPlan.planPlatform plan
-    compilerId@(CompilerId compilerFlavor _) = InstallPlan.planCompiler plan
+    compilerId@(CompilerId compilerFlavor _ _) = InstallPlan.planCompiler plan
 
 symlinkBinary :: FilePath -- ^ The canonical path of the public bin dir
                           --   eg @/home/user/bin@

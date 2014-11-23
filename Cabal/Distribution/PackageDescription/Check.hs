@@ -1269,7 +1269,7 @@ checkPackageVersions pkg =
     -- using no package index and the current platform.
     finalised = finalizePackageDescription
                               [] (const True) buildPlatform
-                              (CompilerId buildCompilerFlavor (Version [] []))
+                              (CompilerId buildCompilerFlavor (Version [] []) Nothing)
                               [] pkg
     baseDependency = case finalised of
       Right (pkg', _) | not (null baseDeps) ->

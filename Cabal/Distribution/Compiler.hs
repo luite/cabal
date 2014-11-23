@@ -48,7 +48,7 @@ import qualified System.Info (compilerName, compilerVersion)
 import Distribution.Text (Text(..), display)
 import qualified Distribution.Compat.ReadP as Parse
 import qualified Text.PrettyPrint as Disp
-import Text.PrettyPrint ((<>))
+import Text.PrettyPrint ((<>), empty)
 
 import qualified Data.Char as Char (toLower, isDigit, isAlphaNum)
 import Control.Monad (when)
@@ -113,7 +113,7 @@ buildCompilerVersion :: Version
 buildCompilerVersion = System.Info.compilerVersion
 
 buildCompilerId :: CompilerId
-buildCompilerId = CompilerId buildCompilerFlavor buildCompilerVersion
+buildCompilerId = CompilerId buildCompilerFlavor buildCompilerVersion Nothing
 
 -- | The default compiler flavour to pick when compiling stuff. This defaults
 -- to the compiler used to build the Cabal lib.
@@ -130,19 +130,27 @@ defaultCompilerFlavor = case buildCompilerFlavor of
 -- * Compiler Id
 -- ------------------------------------------------------------
 
-data CompilerId = CompilerId CompilerFlavor Version
+-- | If a compiler is based on another "parent" compiler, and is very similar
+-- in functionality and behaviour, it can add the parent's 'CompilerId' to its
+-- own. If a compiler specifies a parent, the impl flag for both the compiler
+-- itself and its parent will be set to true, for their respective versions.
+
+data CompilerId = CompilerId CompilerFlavor Version (Maybe CompilerId)
   deriving (Eq, Generic, Ord, Read, Show)
 
 instance Binary CompilerId
 
 instance Text CompilerId where
-  disp (CompilerId f (Version [] _)) = disp f
-  disp (CompilerId f v) = disp f <> Disp.char '-' <> disp v
+  disp (CompilerId f (Version [] _) parent) = disp f <>
+    maybe empty ((Disp.char '_' <>) . disp) parent
+  disp (CompilerId f v parent) = disp f <> Disp.char '-' <> disp v <>
+    maybe empty ((Disp.char '_' <>) . disp) parent
 
   parse = do
-    flavour <- parse
-    version <- (Parse.char '-' >> parse) Parse.<++ return (Version [] [])
-    return (CompilerId flavour version)
+    flavour  <- parse
+    version  <- (Parse.char '-' >> parse) Parse.<++ return (Version [] [])
+    parentId <- (Parse.char '_' >> parse >>= return . Just) Parse.<++ return Nothing
+    return (CompilerId flavour version parentId)
 
 lowercase :: String -> String
 lowercase = map Char.toLower
