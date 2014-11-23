@@ -154,7 +154,7 @@ convBranch :: OS -> Arch -> CompilerId ->
               (Condition ConfVar,
                CondTree ConfVar [Dependency] a,
                Maybe (CondTree ConfVar [Dependency] a)) -> FlaggedDeps PN
-convBranch os arch cid@(CompilerId cf cv) pi fds p (c', t', mf') =
+convBranch os arch cid pi fds p (c', t', mf') =
   go c' (          convCondTree os arch cid pi fds p   t')
         (maybe [] (convCondTree os arch cid pi fds p) mf')
   where
@@ -172,9 +172,15 @@ convBranch os arch cid@(CompilerId cf cv) pi fds p (c', t', mf') =
     go (Var (Arch arch')) t f
       | arch == arch'  = t
       | otherwise      = f
+    -- The value assignment of an implementation flag is true iff it matches the
+    -- flavour and version of the CompilerId, or the flavour and respective
+    -- version of any of its parents.
     go (Var (Impl cf' cvr')) t f
-      | cf == cf' && checkVR cvr' cv = t
-      | otherwise      = f
+      | goImpl cf' cvr' cid = t
+      | otherwise           = f
+    goImpl cf' cvr' (CompilerId cf cv parent) =
+      cf == cf' && checkVR cvr' cv ||
+      maybe False (goImpl cf' cvr') parent
 
     -- If both branches contain the same package as a simple dep, we lift it to
     -- the next higher-level, but without constraints. This heuristic together

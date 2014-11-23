@@ -572,7 +572,7 @@ configure (pkg_descr0, pbi) cfg
 
         let ghciLibByDefault =
               case compilerId comp of
-                CompilerId GHC _ ->
+                CompilerId GHC _ _ ->
                   -- If ghc is non-dynamic, then ghci needs object files,
                   -- so we build one by default.
                   --
@@ -586,7 +586,7 @@ configure (pkg_descr0, pbi) cfg
 
         let sharedLibsByDefault =
               case compilerId comp of
-                CompilerId GHC _ ->
+                CompilerId GHC _ _ ->
                   -- if ghc is dynamic, then ghci needs a shared
                   -- library, so we build one by default.
                   GHC.ghcDynamic comp
