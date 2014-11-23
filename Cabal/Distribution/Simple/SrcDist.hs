@@ -442,7 +442,7 @@ allSourcesBuildInfo bi pps modules = do
       in findFileWithExtension fileExts (hsSourceDirs bi) file
     | module_ <- modules ++ otherModules bi ]
 
-  return $ sources ++ catMaybes bootFiles ++ cSources bi
+  return $ sources ++ catMaybes bootFiles ++ cSources bi ++ jsSources bi
 
   where
     suffixes = ppSuffixes pps ++ ["hs", "lhs"]
