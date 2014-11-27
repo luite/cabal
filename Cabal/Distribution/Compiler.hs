@@ -35,6 +35,11 @@ module Distribution.Compiler (
 
   -- * Compiler id
   CompilerId(..),
+
+  -- * Compiler info
+  CompilerInfo(..),
+  unknownCompilerInfo,
+  AbiTag(..), abiTagString
   ) where
 
 import Data.Binary (Binary)
@@ -43,6 +48,8 @@ import Data.Typeable (Typeable)
 import Data.Maybe (fromMaybe)
 import Distribution.Version (Version(..))
 import GHC.Generics (Generic)
+
+import Language.Haskell.Extension (Language, Extension)
 
 import qualified System.Info (compilerName, compilerVersion)
 import Distribution.Text (Text(..), display)
@@ -146,3 +153,64 @@ instance Text CompilerId where
 
 lowercase :: String -> String
 lowercase = map Char.toLower
+
+-- ------------------------------------------------------------
+-- * Compiler Info
+-- ------------------------------------------------------------
+
+-- | Compiler information used for resolving configurations. Fields can be
+--   left as Nothing when the information is unknown.
+--
+--   note: The Text instance for CompilerInfo only shows the non-optional parts:
+--         CompilerId and AbiTag
+
+data CompilerInfo = CompilerInfo {
+         compilerInfoId         :: CompilerId,
+         -- ^ Compiler flavour and version.
+         compilerInfoAbiTag     :: AbiTag,
+         -- ^ fixme description
+         compilerInfoCompat     :: Maybe [CompilerId],
+         -- ^ Implementations that this compiler claims to be compatible with, if known.
+         compilerInfoLanguages  :: Maybe [Language],
+         -- ^ Supported language standards, if known.
+         compilerInfoExtensions :: Maybe [Extension]
+         -- ^ Supported extensions, if known.
+     }
+     deriving (Generic, Show, Read)
+
+instance Text CompilerInfo where
+  disp comp = disp (compilerInfoId comp) <>
+              case compilerInfoAbiTag comp of
+                NoAbiTag   -> Disp.empty
+                AbiTag tag -> Disp.char '-' <> Disp.text tag
+  parse = do
+    compid <- parse
+    abiTag <- (Parse.char '-' >> parse) Parse.<++ return NoAbiTag
+    return (CompilerInfo compid abiTag Nothing Nothing Nothing)
+
+instance Binary CompilerInfo
+
+data AbiTag
+  = NoAbiTag
+  | AbiTag String
+  deriving (Generic, Show, Read)
+
+instance Binary AbiTag
+
+instance Text AbiTag where
+  disp NoAbiTag     = Disp.empty
+  disp (AbiTag tag) = Disp.text tag
+
+  parse = do
+    tag <- Parse.many1 (Parse.satisfy $ \c -> Char.isAlphaNum c || c == '_')
+    if null tag then return NoAbiTag else return (AbiTag tag)
+
+abiTagString :: AbiTag -> String
+abiTagString NoAbiTag     = ""
+abiTagString (AbiTag tag) = tag
+
+-- | Make a CompilerInfo of which only the known information is its CompilerId,
+--   and that it does not claim to be compatible with other compiler id's.
+unknownCompilerInfo :: CompilerId -> AbiTag -> CompilerInfo
+unknownCompilerInfo compilerId abiTag =
+  CompilerInfo compilerId abiTag (Just []) Nothing Nothing

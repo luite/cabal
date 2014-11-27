@@ -42,7 +42,7 @@ import Distribution.PackageDescription
 import Distribution.System
          ( OS, Arch )
 import Distribution.Compiler
-         ( CompilerId )
+         ( CompilerInfo(..), unknownCompilerInfo )
 import qualified Distribution.Text as Text
          ( Text(disp, parse) )
 import Distribution.ParseUtils
@@ -76,7 +76,7 @@ data BuildReport
     arch            :: Arch,
 
     -- | The Haskell compiler (and hopefully version) used
-    compiler        :: CompilerId,
+    compiler        :: CompilerInfo,
 
     -- | The uploading client, ie cabal-install-x.y.z
     client          :: PackageIdentifier,
@@ -119,7 +119,7 @@ data InstallOutcome
 data Outcome = NotTried | Failed | Ok
   deriving Eq
 
-new :: OS -> Arch -> CompilerId -> PackageIdentifier -> FlagAssignment
+new :: OS -> Arch -> CompilerInfo -> PackageIdentifier -> FlagAssignment
     -> [PackageIdentifier] -> BR.BuildResult -> BuildReport
 new os' arch' comp pkgid flags deps result =
   BuildReport {

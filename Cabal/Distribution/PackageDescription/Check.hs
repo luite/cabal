@@ -46,7 +46,8 @@ import Distribution.PackageDescription
 import Distribution.PackageDescription.Configuration
          ( flattenPackageDescription, finalizePackageDescription )
 import Distribution.Compiler
-         ( CompilerFlavor(..), buildCompilerFlavor, CompilerId(..) )
+         ( CompilerFlavor(..), buildCompilerFlavor, CompilerId(..)
+         , unknownCompilerInfo, AbiTag(..) )
 import Distribution.System
          ( OS(..), Arch(..), buildPlatform )
 import Distribution.License
@@ -1270,7 +1271,8 @@ checkPackageVersions pkg =
     -- using no package index and the current platform.
     finalised = finalizePackageDescription
                               [] (const True) buildPlatform
-                              (CompilerId buildCompilerFlavor (Version [] []))
+                              (unknownCompilerInfo
+                                (CompilerId buildCompilerFlavor (Version [] [])) NoAbiTag)
                               [] pkg
     baseDependency = case finalised of
       Right (pkg', _) | not (null baseDeps) ->

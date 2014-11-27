@@ -41,7 +41,7 @@ import Distribution.Simple.InstallDirs
 import Distribution.System
          ( Platform(Platform) )
 import Distribution.Compiler
-         ( CompilerId )
+         ( CompilerInfo(..) )
 import Distribution.Simple.Utils
          ( comparing, equating )
 
@@ -122,7 +122,7 @@ fromInstallPlan plan = catMaybes
   where platform = InstallPlan.planPlatform plan
         comp     = InstallPlan.planCompiler plan
 
-fromPlanPackage :: Platform -> CompilerId
+fromPlanPackage :: Platform -> CompilerInfo
                 -> InstallPlan.PlanPackage
                 -> Maybe (BuildReport, Maybe Repo)
 fromPlanPackage (Platform arch os) comp planPackage = case planPackage of
@@ -144,7 +144,7 @@ fromPlanPackage (Platform arch os) comp planPackage = case planPackage of
     extractRepo (SourcePackage { packageSource = RepoTarballPackage repo _ _ }) = Just repo
     extractRepo _ = Nothing
 
-fromPlanningFailure :: Platform -> CompilerId
+fromPlanningFailure :: Platform -> CompilerInfo
     -> [PackageId] -> FlagAssignment -> [(BuildReport, Maybe Repo)]
 fromPlanningFailure (Platform arch os) comp pkgids flags =
   [ (BuildReport.new os arch comp pkgid flags [] (Left PlanningFailed), Nothing)
