@@ -73,7 +73,7 @@ import Distribution.Text
 import Distribution.System
          ( Platform )
 import Distribution.Compiler
-         ( CompilerId(..) )
+         ( CompilerInfo(..) )
 import Distribution.Client.Utils
          ( duplicates, duplicatesBy, mergeBy, MergeResult(..) )
 import Distribution.Simple.Utils
@@ -181,7 +181,7 @@ data InstallPlan = InstallPlan {
     planPkgOf    :: Graph.Vertex -> PlanPackage,
     planVertexOf :: InstalledPackageId -> Graph.Vertex,
     planPlatform :: Platform,
-    planCompiler :: CompilerId
+    planCompiler :: CompilerInfo
   }
 
 invariant :: InstallPlan -> Bool
@@ -214,7 +214,7 @@ showPlanPackageTag (Failed _ _)    = "Failed"
 
 -- | Build an installation plan from a valid set of resolved packages.
 --
-new :: Platform -> CompilerId -> PlanIndex
+new :: Platform -> CompilerInfo -> PlanIndex
     -> Either [PlanProblem] InstallPlan
 new platform compiler index =
   -- NB: Need to pre-initialize the fake-map with pre-existing
@@ -402,7 +402,7 @@ checkConfiguredPackage pkg                =
 --
 -- * if the result is @False@ use 'problems' to get a detailed list.
 --
-valid :: Platform -> CompilerId -> FakeMap -> PlanIndex -> Bool
+valid :: Platform -> CompilerInfo -> FakeMap -> PlanIndex -> Bool
 valid platform comp fakeMap index = null (problems platform comp fakeMap index)
 
 data PlanProblem =
@@ -453,7 +453,7 @@ showPlanProblem (PackageStateInvalid pkg pkg') =
 -- error messages. This is mainly intended for debugging purposes.
 -- Use 'showPlanProblem' for a human readable explanation.
 --
-problems :: Platform -> CompilerId -> FakeMap
+problems :: Platform -> CompilerInfo -> FakeMap
          -> PlanIndex -> [PlanProblem]
 problems platform comp fakeMap index =
      [ PackageInvalid pkg packageProblems
@@ -545,7 +545,7 @@ stateDependencyRelation _               _               = False
 -- in the configuration given by the flag assignment, all the package
 -- dependencies are satisfied by the specified packages.
 --
-configuredPackageValid :: Platform -> CompilerId -> ConfiguredPackage -> Bool
+configuredPackageValid :: Platform -> CompilerInfo -> ConfiguredPackage -> Bool
 configuredPackageValid platform comp pkg =
   null (configuredPackageProblems platform comp pkg)
 
@@ -585,7 +585,7 @@ showPackageProblem (InvalidDep dep pkgid) =
   ++ " but the configuration specifies " ++ display pkgid
   ++ " which does not satisfy the dependency."
 
-configuredPackageProblems :: Platform -> CompilerId
+configuredPackageProblems :: Platform -> CompilerInfo
                           -> ConfiguredPackage -> [PackageProblem]
 configuredPackageProblems platform comp
   (ConfiguredPackage pkg specifiedFlags stanzas specifiedDeps) =

@@ -47,7 +47,7 @@ import Distribution.Version
          ( VersionRange, withinRange, simplifyVersionRange
          , UpperBound(..), asVersionIntervals )
 import Distribution.Compiler
-         ( CompilerId )
+         ( CompilerInfo )
 import Distribution.System
          ( Platform )
 import Distribution.Simple.Utils
@@ -253,7 +253,7 @@ topDownResolver platform comp installedPkgIndex sourcePkgIndex
 
 -- | The native resolver with detailed structured logging and failure types.
 --
-topDownResolver' :: Platform -> CompilerId
+topDownResolver' :: Platform -> CompilerInfo
                  -> PackageIndex InstalledPackage
                  -> PackageIndex SourcePackage
                  -> (PackageName -> PackagePreferences)
@@ -345,7 +345,7 @@ addTopLevelConstraints (PackageConstraintStanzas _ _ : deps) cs =
 
 -- | Add exclusion on available packages that cannot be configured.
 --
-pruneBottomUp :: Platform -> CompilerId
+pruneBottomUp :: Platform -> CompilerInfo
               -> Constraints -> Progress Log Failure Constraints
 pruneBottomUp platform comp constraints =
     foldr prune Done (initialPackages constraints) constraints
@@ -390,7 +390,7 @@ pruneBottomUp platform comp constraints =
     getSourcePkg (InstalledAndSource _ spkg) = Just spkg
 
 
-configurePackage :: Platform -> CompilerId -> ConfigurePackage
+configurePackage :: Platform -> CompilerInfo -> ConfigurePackage
 configurePackage platform comp available spkg = case spkg of
   InstalledOnly      ipkg      -> Right (InstalledOnly ipkg)
   SourceOnly              apkg -> fmap SourceOnly (configure apkg)
